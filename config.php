@@ -1,0 +1,17 @@
+<?php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'squarestack');
+define('DB_USER', 'root');
+define('DB_PASS', 'root');
+define('SITE_URL', 'http://localhost/squarestack-cms');
+define('THEME', 'starter');
+define('CACHE_ENABLED', true);
+define('CACHE_TTL', 3600);
+define('UPLOAD_MAX_SIZE', 10 * 1024 * 1024); // 10MB
+define('WEBP_QUALITY', 85);
+define('ROOT_PATH', __DIR__);
+define('CORE_PATH', ROOT_PATH . '/core');
+define('THEME_PATH', ROOT_PATH . '/themes/' . THEME);
+define('UPLOAD_PATH', ROOT_PATH . '/uploads');
+define('CACHE_PATH', ROOT_PATH . '/cache');
+define('ADMIN_PATH', ROOT_PATH . '/admin');
