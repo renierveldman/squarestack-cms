@@ -150,6 +150,93 @@ try {
             break;
         }
 
+        case 'delete_form': {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id <= 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Invalid id']);
+                exit;
+            }
+            echo json_encode(['success' => CMS::deleteForm($id)]);
+            break;
+        }
+
+        case 'delete_form_submission': {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id <= 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Invalid id']);
+                exit;
+            }
+            echo json_encode(['success' => CMS::deleteFormSubmission($id)]);
+            break;
+        }
+
+        case 'get_mailchimp_lists': {
+            $apiKey = Settings::get('mailchimp_api_key', '');
+            $dc     = Settings::get('mailchimp_dc',      '');
+            if (!$apiKey || !$dc) {
+                echo json_encode(['success' => false, 'error' => 'Mailchimp not connected.']);
+                exit;
+            }
+            $url = "https://{$dc}.api.mailchimp.com/3.0/lists?count=100&fields=lists.id,lists.name,lists.stats";
+            $ch  = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER     => ['Authorization: Basic ' . base64_encode('anystring:' . $apiKey)],
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($httpCode !== 200) {
+                echo json_encode(['success' => false, 'error' => 'Failed to fetch audiences (HTTP ' . $httpCode . ').']);
+                exit;
+            }
+            $data = json_decode($response, true);
+            echo json_encode(['success' => true, 'lists' => $data['lists'] ?? []]);
+            break;
+        }
+
+        case 'test_mailchimp': {
+            $apiKey = trim($_POST['api_key'] ?? Settings::get('mailchimp_api_key', ''));
+            if ($apiKey === '') {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'No API key provided.']);
+                exit;
+            }
+            if (!preg_match('/-([a-z0-9]+)$/', $apiKey, $m)) {
+                echo json_encode(['success' => false, 'error' => 'Invalid key format.']);
+                exit;
+            }
+            $dc  = $m[1];
+            $url = "https://{$dc}.api.mailchimp.com/3.0/";
+            $ch  = curl_init($url);
+            curl_setopt_array($ch, [
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER     => ['Authorization: Basic ' . base64_encode('anystring:' . $apiKey)],
+                CURLOPT_TIMEOUT        => 10,
+                CURLOPT_SSL_VERIFYPEER => true,
+            ]);
+            $response  = curl_exec($ch);
+            $httpCode  = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+
+            if ($httpCode !== 200) {
+                echo json_encode(['success' => false, 'error' => 'Connection failed (HTTP ' . $httpCode . ').']);
+                exit;
+            }
+            $data = json_decode($response, true);
+            echo json_encode([
+                'success'      => true,
+                'dc'           => $dc,
+                'account_name' => $data['account_name'] ?? '',
+                'email'        => $data['email']        ?? '',
+            ]);
+            break;
+        }
+
         default:
             http_response_code(400);
             echo json_encode(['success' => false, 'error' => 'Unknown action']);

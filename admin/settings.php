@@ -54,11 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $success[] = 'google_fonts';
         }
 
-        if ($section === 'analytics') {
-            Settings::set('ga_id', trim($_POST['ga_id'] ?? ''));
-            $success[] = 'analytics';
-        }
-
         if ($section === 'seo') {
             Settings::set('seo_title_suffix',   trim($_POST['seo_title_suffix']   ?? ''));
             Settings::set('seo_meta_desc',       trim($_POST['seo_meta_desc']       ?? ''));
@@ -75,7 +70,6 @@ $siteName      = Settings::get('site_name',          '');
 $siteTagline   = Settings::get('site_tagline',       '');
 $footerText    = Settings::get('footer_text',        '');
 $blogSlug      = Settings::get('blog_slug',          'blog');
-$gaId          = Settings::get('ga_id',              '');
 $seoSuffix     = Settings::get('seo_title_suffix',   '');
 $seoMetaDesc   = Settings::get('seo_meta_desc',      '');
 $seoOgImage    = Settings::get('seo_og_image',       '');
@@ -312,42 +306,6 @@ $csrf = Auth::generateCsrf();
                     <button type="submit"
                             class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
                         <i class="fa-solid fa-floppy-disk"></i> Save Fonts
-                    </button>
-                </div>
-            </fieldset>
-        </form>
-
-        <!-- ===== Analytics ===== -->
-        <form method="post" action="<?= SITE_URL ?>/admin/settings.php#analytics" class="mb-8">
-            <input type="hidden" name="csrf"    value="<?= htmlspecialchars($csrf) ?>">
-            <input type="hidden" name="section" value="analytics">
-            <fieldset class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                <legend class="sr-only">Analytics</legend>
-                <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <i class="fa-solid fa-chart-line text-indigo-500"></i>
-                        <span class="font-semibold text-gray-800">Analytics</span>
-                    </div>
-                    <?php if (in_array('analytics', $success, true)): ?>
-                        <span id="analytics" class="text-xs text-green-600 font-medium flex items-center gap-1">
-                            <i class="fa-solid fa-check"></i> Saved
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div class="px-6 py-5">
-                    <div>
-                        <label for="ga_id" class="block text-sm font-medium text-gray-700 mb-1">Google Analytics ID</label>
-                        <input type="text" id="ga_id" name="ga_id"
-                               value="<?= htmlspecialchars($gaId) ?>"
-                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-                               placeholder="G-XXXXXXXXXX">
-                        <p class="text-xs text-gray-400 mt-1">Your Google Analytics 4 Measurement ID (starts with <code class="bg-gray-100 px-1 rounded">G-</code>). Leave blank to disable tracking.</p>
-                    </div>
-                </div>
-                <div class="px-6 py-4 bg-gray-50 border-t border-gray-100 flex justify-end">
-                    <button type="submit"
-                            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
-                        <i class="fa-solid fa-floppy-disk"></i> Save Analytics
                     </button>
                 </div>
             </fieldset>

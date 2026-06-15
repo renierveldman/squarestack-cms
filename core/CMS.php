@@ -329,6 +329,79 @@ class CMS
     }
 
     // -------------------------------------------------------------------------
+    // FORMS
+    // -------------------------------------------------------------------------
+
+    public static function getForms(): array
+    {
+        $db = Database::getInstance();
+        return $db->fetchAll(
+            'SELECT f.*, (SELECT COUNT(*) FROM form_submissions WHERE form_id = f.id) AS submission_count
+             FROM forms f ORDER BY f.created_at DESC'
+        );
+    }
+
+    public static function getForm(string|int $slugOrId): array|false
+    {
+        $db = Database::getInstance();
+        if (is_int($slugOrId) || ctype_digit((string) $slugOrId)) {
+            return $db->fetch('SELECT * FROM forms WHERE id = ? LIMIT 1', [(int) $slugOrId]);
+        }
+        return $db->fetch('SELECT * FROM forms WHERE slug = ? LIMIT 1', [$slugOrId]);
+    }
+
+    public static function saveForm(array $data): int
+    {
+        $db = Database::getInstance();
+        if (isset($data['id']) && $data['id']) {
+            $id = (int) $data['id'];
+            unset($data['id']);
+            $data['updated_at'] = date('Y-m-d H:i:s');
+            $db->update('forms', $data, '`id` = ?', [$id]);
+            return $id;
+        }
+        if (!isset($data['created_at'])) $data['created_at'] = date('Y-m-d H:i:s');
+        if (!isset($data['updated_at'])) $data['updated_at'] = date('Y-m-d H:i:s');
+        return $db->insert('forms', $data);
+    }
+
+    public static function deleteForm(int $id): bool
+    {
+        $db = Database::getInstance();
+        return $db->delete('forms', '`id` = ?', [$id]) > 0;
+    }
+
+    public static function saveFormSubmission(int $formId, array $data, string $ip = ''): int
+    {
+        $db = Database::getInstance();
+        return $db->insert('form_submissions', [
+            'form_id'    => $formId,
+            'data'       => json_encode($data, JSON_UNESCAPED_UNICODE),
+            'ip_address' => $ip,
+            'created_at' => date('Y-m-d H:i:s'),
+        ]);
+    }
+
+    public static function getFormSubmissions(int $formId, int $limit = 50, int $offset = 0): array
+    {
+        $db    = Database::getInstance();
+        $total = (int) ($db->fetch(
+            'SELECT COUNT(*) AS total FROM form_submissions WHERE form_id = ?', [$formId]
+        )['total'] ?? 0);
+        $items = $db->fetchAll(
+            'SELECT * FROM form_submissions WHERE form_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?',
+            [$formId, $limit, $offset]
+        );
+        return ['items' => $items, 'total' => $total];
+    }
+
+    public static function deleteFormSubmission(int $id): bool
+    {
+        $db = Database::getInstance();
+        return $db->delete('form_submissions', '`id` = ?', [$id]) > 0;
+    }
+
+    // -------------------------------------------------------------------------
     // SITEMAP
     // -------------------------------------------------------------------------
 

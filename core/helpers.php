@@ -137,12 +137,12 @@ function seo_head(): void {
     global $page, $post;
 
     $obj       = $post ?: $page;
-    $siteName  = Settings::get('site_name', 'My Website');
-    $suffix    = Settings::get('seo_default_title_suffix', ' | ' . $siteName);
-    $defDesc   = Settings::get('seo_default_description', '');
-    $defOg     = Settings::get('seo_default_og_image', '');
+    $siteName  = Settings::get('site_name', '');
+    $suffix    = Settings::get('seo_title_suffix', '');
+    $defDesc   = Settings::get('seo_meta_desc', '');
+    $defOg     = Settings::get('seo_og_image', '');
 
-    $rawTitle  = $obj['meta_title'] ?? $obj['title'] ?? $siteName;
+    $rawTitle  = $obj['meta_title'] ?? $obj['title'] ?? $siteName ?? '';
     $title     = htmlspecialchars($rawTitle . $suffix, ENT_QUOTES, 'UTF-8');
     $desc      = htmlspecialchars($obj['meta_description'] ?? $defDesc, ENT_QUOTES, 'UTF-8');
     $ogImage   = htmlspecialchars($obj['og_image'] ?? $defOg, ENT_QUOTES, 'UTF-8');
@@ -156,6 +156,7 @@ function seo_head(): void {
     if ($ogImage) echo "<meta property=\"og:image\" content=\"{$ogImage}\">\n";
     echo "<meta property=\"og:url\" content=\"{$canonical}\">\n";
     echo "<meta property=\"og:type\" content=\"website\">\n";
+    echo "<meta property=\"og:site_name\" content=\"" . htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8') . "\">\n";
     echo "<meta name=\"twitter:card\" content=\"summary_large_image\">\n";
 
     // JSON-LD
@@ -188,6 +189,185 @@ function google_fonts_head(): void {
     echo "<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n";
     echo "<link rel=\"preload\" href=\"" . htmlspecialchars($href) . "\" as=\"style\" onload=\"this.onload=null;this.rel='stylesheet'\">\n";
     echo "<noscript><link rel=\"stylesheet\" href=\"" . htmlspecialchars($href) . "\"></noscript>\n";
+}
+
+// ─── Forms ──────────────────────────────────────────────────────────────────
+
+function render_form(string $slug): void {
+    $formData = CMS::getForm($slug);
+    if (!$formData) return;
+
+    $fields  = json_decode($formData['fields'] ?? '[]', true) ?: [];
+    $formId  = (int) $formData['id'];
+    $handler = SITE_URL . '/form-handler.php';
+
+    echo '<form class="ss-form space-y-5" data-form-id="' . $formId . '" novalidate>';
+    echo '<input type="hidden" name="form_id" value="' . $formId . '">';
+    echo '<input type="text" name="website" style="display:none" tabindex="-1" autocomplete="off">';
+
+    foreach ($fields as $field) {
+        $type        = $field['type']        ?? 'text';
+        $label       = $field['label']       ?? '';
+        $name        = $field['name']        ?? '';
+        $placeholder = $field['placeholder'] ?? '';
+        $required    = !empty($field['required']);
+        $options     = $field['options']     ?? [];
+        $reqAttr     = $required ? ' required' : '';
+        $inputClass  = 'w-full px-4 py-2.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition';
+
+        echo '<div class="ss-form-group" data-name="' . esc_attr($name) . '">';
+
+        if ($type !== 'checkbox' && $label) {
+            echo '<label class="block text-sm font-medium text-gray-700 mb-1.5">';
+            echo esc_html($label);
+            if ($required) echo ' <span class="text-red-500" aria-hidden="true">*</span>';
+            echo '</label>';
+        }
+
+        switch ($type) {
+            case 'textarea':
+                echo '<textarea name="' . esc_attr($name) . '" rows="4" placeholder="' . esc_attr($placeholder) . '" class="' . $inputClass . ' resize-none"' . $reqAttr . '></textarea>';
+                break;
+            case 'select':
+                echo '<select name="' . esc_attr($name) . '" class="' . $inputClass . '"' . $reqAttr . '>';
+                echo '<option value="">— Select —</option>';
+                foreach ($options as $opt) {
+                    echo '<option value="' . esc_attr($opt) . '">' . esc_html($opt) . '</option>';
+                }
+                echo '</select>';
+                break;
+            case 'checkbox':
+                echo '<label class="flex items-start gap-3 cursor-pointer">';
+                echo '<input type="checkbox" name="' . esc_attr($name) . '" value="1" class="mt-0.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"' . $reqAttr . '>';
+                echo '<span class="text-sm text-gray-700">' . esc_html($label) . ($required ? ' <span class="text-red-500">*</span>' : '') . '</span>';
+                echo '</label>';
+                break;
+            default:
+                echo '<input type="' . esc_attr($type) . '" name="' . esc_attr($name) . '" placeholder="' . esc_attr($placeholder) . '" class="' . $inputClass . '"' . $reqAttr . '>';
+        }
+
+        echo '<p class="ss-field-error text-xs text-red-600 mt-1 hidden"></p>';
+        echo '</div>';
+    }
+
+    echo '<div class="ss-form-success hidden bg-green-50 border border-green-200 text-green-700 rounded-lg px-4 py-3 text-sm"></div>';
+    echo '<div class="ss-form-error hidden bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm"></div>';
+
+    echo '<div>';
+    echo '<button type="submit" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-2.5 rounded-lg transition">';
+    echo '<span class="ss-btn-label">Send Message</span>';
+    echo '<i class="ss-btn-spinner fa-solid fa-spinner fa-spin hidden"></i>';
+    echo '</button>';
+    echo '</div>';
+
+    echo '</form>';
+
+    // Inline JS — output once per page
+    static $scriptPrinted = false;
+    if (!$scriptPrinted) {
+        $scriptPrinted = true;
+        $handlerUrl = SITE_URL . '/form-handler.php';
+        echo <<<JS
+<script>
+(function () {
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!form.classList.contains('ss-form')) return;
+        e.preventDefault();
+
+        var btn     = form.querySelector('[type="submit"]');
+        var label   = form.querySelector('.ss-btn-label');
+        var spinner = form.querySelector('.ss-btn-spinner');
+        var success = form.querySelector('.ss-form-success');
+        var errBox  = form.querySelector('.ss-form-error');
+
+        // Clear previous errors
+        form.querySelectorAll('.ss-field-error').forEach(function (el) { el.classList.add('hidden'); el.textContent = ''; });
+        success.classList.add('hidden');
+        errBox.classList.add('hidden');
+
+        btn.disabled = true;
+        if (label) label.textContent = 'Sending…';
+        if (spinner) spinner.classList.remove('hidden');
+
+        var body = new FormData(form);
+
+        fetch('{$handlerUrl}', { method: 'POST', body: body })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                btn.disabled = false;
+                if (label) label.textContent = 'Send Message';
+                if (spinner) spinner.classList.add('hidden');
+
+                if (data.success) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                        return;
+                    }
+                    form.reset();
+                    success.textContent = data.message || 'Thank you!';
+                    success.classList.remove('hidden');
+                } else if (data.errors) {
+                    Object.keys(data.errors).forEach(function (name) {
+                        var group = form.querySelector('[data-name="' + name + '"]');
+                        if (group) {
+                            var errEl = group.querySelector('.ss-field-error');
+                            if (errEl) { errEl.textContent = data.errors[name]; errEl.classList.remove('hidden'); }
+                        }
+                    });
+                } else {
+                    errBox.textContent = data.error || 'Something went wrong. Please try again.';
+                    errBox.classList.remove('hidden');
+                }
+            })
+            .catch(function () {
+                btn.disabled = false;
+                if (label) label.textContent = 'Send Message';
+                if (spinner) spinner.classList.add('hidden');
+                errBox.textContent = 'Network error. Please try again.';
+                errBox.classList.remove('hidden');
+            });
+    });
+}());
+</script>
+JS;
+    }
+}
+
+// ─── Integrations (marketing/analytics snippets) ────────────────────────────
+
+function integrations_head(): void {
+    $gtmId   = Settings::get('gtm_id',           '');
+    $gaId    = Settings::get('ga_id',             '');
+    $pixelId = Settings::get('meta_pixel_id',     '');
+    $gsc     = Settings::get('gsc_verification',  '');
+
+    if ($gsc) {
+        echo "<meta name=\"google-site-verification\" content=\"" . htmlspecialchars($gsc, ENT_QUOTES, 'UTF-8') . "\">\n";
+    }
+
+    if ($gtmId) {
+        $id = htmlspecialchars($gtmId, ENT_QUOTES, 'UTF-8');
+        echo "<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','{$id}');</script>\n";
+    } elseif ($gaId) {
+        // Only inject GA4 directly when GTM is not managing it
+        $id = htmlspecialchars($gaId, ENT_QUOTES, 'UTF-8');
+        echo "<script async src=\"https://www.googletagmanager.com/gtag/js?id={$id}\"></script>\n";
+        echo "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','{$id}');</script>\n";
+    }
+
+    if ($pixelId) {
+        $id = htmlspecialchars($pixelId, ENT_QUOTES, 'UTF-8');
+        echo "<script>!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','{$id}');fbq('track','PageView');</script>\n";
+        echo "<noscript><img height=\"1\" width=\"1\" style=\"display:none\" src=\"https://www.facebook.com/tr?id={$id}&ev=PageView&noscript=1\"></noscript>\n";
+    }
+}
+
+function integrations_body_open(): void {
+    $gtmId = Settings::get('gtm_id', '');
+    if (!$gtmId) return;
+    $id = htmlspecialchars($gtmId, ENT_QUOTES, 'UTF-8');
+    echo "<noscript><iframe src=\"https://www.googletagmanager.com/ns.html?id={$id}\" height=\"0\" width=\"0\" style=\"display:none;visibility:hidden\"></iframe></noscript>\n";
 }
 
 // ─── Escape helpers (compat aliases) ────────────────────────────────────────

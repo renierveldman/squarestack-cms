@@ -19,16 +19,18 @@ $_sidebarUser = $user ?? $currentUser ?? [];
             ['href' => SITE_URL . '/admin/',                  'icon' => 'fa-gauge-high', 'label' => 'Dashboard',     'key' => 'dashboard'],
             ['href' => SITE_URL . '/admin/pages.php',         'icon' => 'fa-file-lines', 'label' => 'Pages',         'key' => 'pages'],
             ['href' => SITE_URL . '/admin/posts.php',         'icon' => 'fa-newspaper',  'label' => 'Posts',         'key' => 'posts'],
+            ['href' => SITE_URL . '/admin/forms.php',         'icon' => 'fa-rectangle-list', 'label' => 'Forms',         'key' => 'forms'],
             ['href' => SITE_URL . '/admin/menus.php',         'icon' => 'fa-bars',       'label' => 'Menus',         'key' => 'menus'],
             ['href' => SITE_URL . '/admin/media.php',         'icon' => 'fa-photo-film', 'label' => 'Media',         'key' => 'media'],
             ['href' => SITE_URL . '/admin/users.php',         'icon' => 'fa-users',      'label' => 'Users',         'key' => 'users'],
             ['href' => SITE_URL . '/admin/theme-options.php', 'icon' => 'fa-palette',    'label' => 'Custom Fields', 'key' => 'theme_options'],
+            ['href' => SITE_URL . '/admin/integrations.php',  'icon' => 'fa-plug',       'label' => 'Integrations',  'key' => 'integrations'],
             ['href' => SITE_URL . '/admin/settings.php',      'icon' => 'fa-gear',       'label' => 'Settings',      'key' => 'settings'],
         ];
         foreach ($navItems as $item):
             $isActive    = (($currentPage ?? '') === $item['key']);
             $baseClass   = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline';
-            $activeClass = $isActive ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-white';
+            $activeClass = $isActive ? 'bg-indigo-600 text-white' : 'text-slate-200 hover:bg-slate-800 hover:text-white';
         ?>
         <a href="<?= htmlspecialchars($item['href']) ?>" class="<?= $baseClass . ' ' . $activeClass ?>">
             <i class="fa-solid <?= $item['icon'] ?> w-4 text-center"></i>

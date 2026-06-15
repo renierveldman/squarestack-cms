@@ -111,6 +111,29 @@ INSERT INTO settings (setting_key, setting_value) VALUES
   ('seo_default_og_image', '')
 ON DUPLICATE KEY UPDATE setting_key = setting_key;
 
+CREATE TABLE IF NOT EXISTS forms (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  slug VARCHAR(191) NOT NULL UNIQUE,
+  fields JSON NOT NULL,
+  notify_email VARCHAR(255) DEFAULT '',
+  notify_subject VARCHAR(255) DEFAULT '',
+  success_message TEXT,
+  redirect_url VARCHAR(500) DEFAULT '',
+  mailchimp_list_id VARCHAR(100) DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS form_submissions (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  form_id INT UNSIGNED NOT NULL,
+  data JSON NOT NULL,
+  ip_address VARCHAR(45) DEFAULT '',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Default menus
 INSERT INTO menus (name, location) VALUES
   ('Primary Navigation', 'primary'),

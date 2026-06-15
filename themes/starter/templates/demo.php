@@ -36,6 +36,8 @@
     </a>
     <?php endif; ?>
 
+    <?php render_form('newsletter-subscribe'); ?>
+
 </div>
 
 <?php include THEME_PATH . '/templates/footer.php'; ?>
