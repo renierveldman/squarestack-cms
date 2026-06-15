@@ -1,5 +1,103 @@
 <?php
 
+// ─── Theme Options ────────────────────────────────────────────────────────────
+
+register_field_group([
+    'title'    => 'Contact Info',
+    'location' => ['type' => 'option'],
+    'fields'   => [
+        [
+            'name'        => 'phone',
+            'label'       => 'Phone Number',
+            'type'        => 'tel',
+            'placeholder' => '+1 (555) 000-0000',
+        ],
+        [
+            'name'        => 'email',
+            'label'       => 'Email Address',
+            'type'        => 'email',
+            'placeholder' => 'hello@example.com',
+        ],
+        [
+            'name'        => 'address',
+            'label'       => 'Address',
+            'type'        => 'textarea',
+            'rows'        => 2,
+            'placeholder' => '123 Main St, City, Country',
+        ],
+    ],
+]);
+
+register_field_group([
+    'title'    => 'Social Media',
+    'location' => ['type' => 'option'],
+    'fields'   => [
+        [
+            'name'        => 'social_facebook',
+            'label'       => 'Facebook URL',
+            'type'        => 'url',
+            'placeholder' => 'https://facebook.com/yourpage',
+        ],
+        [
+            'name'        => 'social_instagram',
+            'label'       => 'Instagram URL',
+            'type'        => 'url',
+            'placeholder' => 'https://instagram.com/yourhandle',
+        ],
+        [
+            'name'        => 'social_linkedin',
+            'label'       => 'LinkedIn URL',
+            'type'        => 'url',
+            'placeholder' => 'https://linkedin.com/company/yourpage',
+        ],
+        [
+            'name'        => 'social_twitter',
+            'label'       => 'X / Twitter URL',
+            'type'        => 'url',
+            'placeholder' => 'https://x.com/yourhandle',
+        ],
+    ],
+]);
+
+register_field_group([
+    'title'    => 'Homepage Content',
+    'location' => ['type' => 'option'],
+    'fields'   => [
+        [
+            'name'        => 'home-hero2',
+            'label'       => 'Home Title',
+            'type'        => 'text',
+            'placeholder' => '',
+        ],
+        [
+            'name'        => 'hero-description2',
+            'label'       => 'Hero Description',
+            'type'        => 'textarea',
+            'placeholder' => 'Please add text',
+        ],
+    ],
+]);
+
+register_field_group([
+    'title'    => 'Branding',
+    'location' => ['type' => 'option'],
+    'fields'   => [
+        [
+            'name'  => 'logo',
+            'label' => 'Logo Image',
+            'type'  => 'image',
+        ],
+        [
+            'name'        => 'tagline',
+            'label'       => 'Site Tagline',
+            'type'        => 'text',
+            'placeholder' => 'Your short site tagline',
+        ],
+    ],
+]);
+
+// ─── Page Field Groups ─────────────────────────────────────────────────────────
+
 register_field_group([
     'title'    => 'Home Page',
     'location' => [

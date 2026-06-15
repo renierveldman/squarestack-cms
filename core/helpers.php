@@ -69,6 +69,10 @@ function register_field_group(array $config): void {
     CMS::registerFieldGroup($config);
 }
 
+function get_theme_option(string $key, mixed $default = ''): mixed {
+    return CMS::getMeta('option', 0, $key, $default);
+}
+
 // ─── Posts / Pages ─────────────────────────────────────────────────────────
 
 function get_posts(array $args = []): array {

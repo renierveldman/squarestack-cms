@@ -60,6 +60,7 @@ global $page, $post;
             <nav class="hidden md:flex items-center">
                 <?php render_menu('primary', 'flex gap-6', '', 'text-gray-700 hover:text-indigo-600 font-medium transition-colors'); ?>
             </nav>
+        
 
             <!-- Hamburger Button (mobile) -->
             <button

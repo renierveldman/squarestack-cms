@@ -14,7 +14,7 @@ class Auth
         self::startSession();
 
         $db = Database::getInstance();
-        $user = $db->fetch('SELECT id, name, email, role, password FROM users WHERE email = ? LIMIT 1', [$email]);
+        $user = $db->fetch('SELECT id, name, email, role, avatar, password FROM users WHERE email = ? LIMIT 1', [$email]);
 
         if ($user === false) {
             return false;
@@ -27,10 +27,11 @@ class Auth
         session_regenerate_id(true);
 
         $_SESSION['user'] = [
-            'id'    => $user['id'],
-            'name'  => $user['name'],
-            'email' => $user['email'],
-            'role'  => $user['role'],
+            'id'     => $user['id'],
+            'name'   => $user['name'],
+            'email'  => $user['email'],
+            'role'   => $user['role'],
+            'avatar' => $user['avatar'] ?? null,
         ];
 
         return true;

@@ -42,6 +42,26 @@ try {
             break;
         }
 
+        case 'delete_user': {
+            $id = (int) ($_POST['id'] ?? 0);
+            if ($id <= 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'Invalid id']);
+                exit;
+            }
+            // Prevent deleting yourself
+            $sessionUser = Auth::currentUser();
+            if ($id === (int)($sessionUser['id'] ?? 0)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'error' => 'You cannot delete your own account.']);
+                exit;
+            }
+            $db = Database::getInstance();
+            $rows = $db->delete('users', 'id = ?', [$id]);
+            echo json_encode(['success' => $rows > 0]);
+            break;
+        }
+
         case 'delete_post': {
             $id = (int) ($_POST['id'] ?? 0);
             if ($id <= 0) {
