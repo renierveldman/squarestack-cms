@@ -179,12 +179,15 @@ $csrfToken = Auth::generateCsrf();
                     <div>
                         <h3 class="text-sm font-semibold text-slate-700 mb-3">Add from Pages</h3>
                         <div class="flex flex-wrap gap-2">
+                            <?php
+                            $basePath = rtrim(parse_url(SITE_URL, PHP_URL_PATH) ?? '', '/');
+                            ?>
                             <?php foreach ($publishedPages as $page): ?>
                             <?php
                                 $pageSlug = $page['slug'] ?? '';
                                 $pageUrl  = ($pageSlug === '' || $pageSlug === 'home')
-                                    ? '/'
-                                    : '/' . $pageSlug . '/';
+                                    ? $basePath . '/'
+                                    : $basePath . '/' . $pageSlug . '/';
                                 $pageTitle = $page['title'] ?? $page['slug'];
                             ?>
                             <button type="button"
@@ -194,7 +197,7 @@ $csrfToken = Auth::generateCsrf();
                             </button>
                             <?php endforeach; ?>
                         </div>
-                        <p class="text-xs text-slate-400 mt-2">Click a page to auto-fill the form above.</p>
+                        <p class="text-xs text-slate-400 mt-2">Click a page to add it to the menu.</p>
                     </div>
                     <?php endif; ?>
 
@@ -342,12 +345,22 @@ function deleteItem(btn) {
 }
 
 // -----------------------------------------------------------------------
-// Fill form from page button
+// Add page directly from page button
 // -----------------------------------------------------------------------
 function fillFromPage(loc, label, url) {
-    document.getElementById('add-label-' + loc).value = label;
-    document.getElementById('add-url-' + loc).value   = url;
-    document.getElementById('add-label-' + loc).focus();
+    const list = document.getElementById('menu-list-' + loc);
+
+    const placeholder = list.querySelector('.empty-placeholder');
+    if (placeholder) placeholder.remove();
+
+    const li = buildItemEl(label, url, '_self');
+    list.appendChild(li);
+    initSortable(list);
+
+    // Flash the new item briefly so the user sees it was added
+    li.style.transition = 'background 0.4s';
+    li.style.background = '#eef2ff';
+    setTimeout(() => { li.style.background = ''; }, 600);
 }
 
 // -----------------------------------------------------------------------

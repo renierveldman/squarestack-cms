@@ -75,6 +75,12 @@ register_field_group([
             'type'        => 'textarea',
             'placeholder' => 'Please add text',
         ],
+        [
+            'name'        => 'hero-button2',
+            'label'       => 'Hero Button 2',
+            'type'        => 'text',
+            'placeholder' => 'Please add text',
+        ],
     ],
 ]);
 
@@ -97,6 +103,26 @@ register_field_group([
 ]);
 
 // ─── Page Field Groups ─────────────────────────────────────────────────────────
+
+register_field_group([
+    'title'    => 'Demo Fields',
+    'location' => ['type' => 'page', 'value' => 'demo'],
+    'template' => 'demo',
+    'fields'   => [
+        [
+            'name'        => 'test_1',
+            'label'       => 'Test 1',
+            'type'        => 'text',
+            'placeholder' => 'Enter test value 1',
+        ],
+        [
+            'name'        => 'test_2',
+            'label'       => 'Test 2',
+            'type'        => 'text',
+            'placeholder' => 'Enter test value 2',
+        ],
+    ],
+]);
 
 register_field_group([
     'title'    => 'Home Page',

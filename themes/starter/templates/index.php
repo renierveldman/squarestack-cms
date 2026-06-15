@@ -16,7 +16,7 @@ $blogSlug            = get_site('blog_slug') ?: 'blog';
     <?php if ($hero_image): ?>
     <div class="absolute inset-0 bg-indigo-900 opacity-60"></div>
     <?php endif; ?>
-    <div class="relative z-10 max-w-5xl mx-auto px-6 py-28 text-center">
+    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-28 text-center">
         <?php if ($hero_title): ?>
             <h1 class="text-5xl font-bold mb-4"><?= esc_html($hero_title) ?></h1>
             <?php if ($hero_subtitle): ?>
@@ -38,7 +38,7 @@ $blogSlug            = get_site('blog_slug') ?: 'blog';
     $latest_posts = get_posts(['limit' => 3, 'status' => 'published']);
 ?>
 <section class="py-16 bg-white">
-    <div class="max-w-5xl mx-auto px-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <?php if ($latest_posts_heading): ?>
         <h2 class="text-3xl font-bold mb-10 text-gray-800"><?= esc_html($latest_posts_heading) ?></h2>
         <?php endif; ?>
@@ -83,7 +83,7 @@ $blogSlug            = get_site('blog_slug') ?: 'blog';
 <!-- Page content (if any) -->
 <?php $content = get_the_content(); if ($content): ?>
 <section class="py-16 bg-gray-50">
-    <div class="max-w-5xl mx-auto px-6 leading-relaxed space-y-4 text-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 leading-relaxed space-y-4 text-gray-700">
         <?= $content ?>
     </div>
 </section>

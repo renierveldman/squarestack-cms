@@ -21,7 +21,7 @@ $shareLinkedIn = 'https://www.linkedin.com/shareArticle?mini=true&url=' . $pageU
 ?>
 <?php include THEME_PATH . '/templates/header.php'; ?>
 
-<div class="max-w-3xl mx-auto px-4 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <?php if (!empty($post['featured_image'])): ?>
     <img src="<?= esc_url($post['featured_image']) ?>" alt="<?= esc_attr($post['title'] ?? '') ?>"

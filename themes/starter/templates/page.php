@@ -1,6 +1,6 @@
 <?php include THEME_PATH . '/templates/header.php'; ?>
 
-<div class="max-w-4xl mx-auto px-4 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
     <?php $headerImage = get_field('header_image'); if ($headerImage): ?>
     <img src="<?= esc_url($headerImage) ?>" alt="<?= esc_attr(get_the_title()) ?>" class="object-cover h-64 w-full rounded-xl mb-8" loading="lazy">

@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS menu_items (
 
 CREATE TABLE IF NOT EXISTS meta (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-  object_type ENUM('page','post','site') NOT NULL,
+  object_type ENUM('page','post','site','option') NOT NULL,
   object_id INT UNSIGNED NOT NULL DEFAULT 0,
   field_key VARCHAR(191) NOT NULL,
   field_value LONGTEXT,

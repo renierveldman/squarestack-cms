@@ -3,15 +3,12 @@
 // Falls back to $currentUser if $user is not set (users.php / users-edit.php).
 $_sidebarUser = $user ?? $currentUser ?? [];
 ?>
-<aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #0f172a;">
+<aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #000000;">
 
     <!-- Logo -->
     <div class="px-6 py-5 border-b border-slate-700">
-        <a href="<?= SITE_URL ?>/admin/" class="flex items-center gap-3 text-white no-underline">
-            <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
-                <i class="fa-solid fa-cube text-white text-sm"></i>
-            </div>
-            <span class="font-bold text-lg tracking-tight">SquareStack</span>
+        <a href="<?= SITE_URL ?>/admin/" class="flex items-center no-underline">
+            <img src="<?= SITE_URL ?>/admin/img/logo1x.svg" alt="SquareStack" class="h-8 w-auto">
         </a>
     </div>
 
@@ -25,7 +22,7 @@ $_sidebarUser = $user ?? $currentUser ?? [];
             ['href' => SITE_URL . '/admin/menus.php',         'icon' => 'fa-bars',       'label' => 'Menus',         'key' => 'menus'],
             ['href' => SITE_URL . '/admin/media.php',         'icon' => 'fa-photo-film', 'label' => 'Media',         'key' => 'media'],
             ['href' => SITE_URL . '/admin/users.php',         'icon' => 'fa-users',      'label' => 'Users',         'key' => 'users'],
-            ['href' => SITE_URL . '/admin/theme-options.php', 'icon' => 'fa-palette',    'label' => 'Theme Options', 'key' => 'theme_options'],
+            ['href' => SITE_URL . '/admin/theme-options.php', 'icon' => 'fa-palette',    'label' => 'Custom Fields', 'key' => 'theme_options'],
             ['href' => SITE_URL . '/admin/settings.php',      'icon' => 'fa-gear',       'label' => 'Settings',      'key' => 'settings'],
         ];
         foreach ($navItems as $item):
