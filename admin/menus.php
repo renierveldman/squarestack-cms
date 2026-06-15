@@ -45,6 +45,7 @@ $csrfToken = Auth::generateCsrf();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menus &mdash; <?php echo htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8'); ?></title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
@@ -52,50 +53,63 @@ $csrfToken = Auth::generateCsrf();
         .menu-item.drag-over { border-top: 2px solid #6366f1; }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen">
+<body class="bg-gray-100">
 
-<div class="flex min-h-screen">
+<div class="flex min-h-screen w-full">
 
+    <?php $currentPage = 'menus'; ?>
     <!-- Sidebar -->
-    <aside class="w-60 bg-slate-900 text-slate-300 flex flex-col shrink-0">
+    <aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #0f172a;">
+        <!-- Logo -->
         <div class="px-6 py-5 border-b border-slate-700">
-            <span class="text-white font-bold text-lg tracking-tight">
-                <?php echo htmlspecialchars($siteName, ENT_QUOTES, 'UTF-8'); ?>
-            </span>
+            <a href="<?= SITE_URL ?>/admin/" class="flex items-center gap-3 text-white no-underline">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fa-solid fa-cube text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">SquareStack</span>
+            </a>
         </div>
-        <nav class="flex-1 px-3 py-4 space-y-1 text-sm">
-            <a href="<?php echo SITE_URL; ?>/admin/index.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Dashboard
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <?php
+            $navItems = [
+                ['href' => SITE_URL . '/admin/',            'icon' => 'fa-gauge-high',  'label' => 'Dashboard', 'key' => 'dashboard'],
+                ['href' => SITE_URL . '/admin/pages.php',   'icon' => 'fa-file-lines',  'label' => 'Pages',     'key' => 'pages'],
+                ['href' => SITE_URL . '/admin/posts.php',   'icon' => 'fa-newspaper',   'label' => 'Posts',     'key' => 'posts'],
+                ['href' => SITE_URL . '/admin/menus.php',   'icon' => 'fa-bars',        'label' => 'Menus',     'key' => 'menus'],
+                ['href' => SITE_URL . '/admin/media.php',   'icon' => 'fa-photo-film',  'label' => 'Media',     'key' => 'media'],
+                ['href' => SITE_URL . '/admin/settings.php','icon' => 'fa-gear',        'label' => 'Settings',  'key' => 'settings'],
+            ];
+            foreach ($navItems as $item):
+                $isActive = ($currentPage === $item['key']);
+                $baseClass = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline';
+                $activeClass = $isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white';
+            ?>
+            <a href="<?= htmlspecialchars($item['href']) ?>" class="<?= $baseClass . ' ' . $activeClass ?>">
+                <i class="fa-solid <?= $item['icon'] ?> w-4 text-center"></i>
+                <span><?= $item['label'] ?></span>
             </a>
-            <a href="<?php echo SITE_URL; ?>/admin/pages.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Pages
-            </a>
-            <a href="<?php echo SITE_URL; ?>/admin/posts.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Posts
-            </a>
-            <a href="<?php echo SITE_URL; ?>/admin/media.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Media
-            </a>
-            <a href="<?php echo SITE_URL; ?>/admin/menus.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-white font-medium">
-                Menus
-            </a>
-            <a href="<?php echo SITE_URL; ?>/admin/settings.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Settings
-            </a>
+            <?php endforeach; ?>
         </nav>
-        <div class="px-3 py-4 border-t border-slate-700 text-xs">
-            <span class="block text-slate-400 px-3 mb-2">
-                <?php echo htmlspecialchars($user['name'] ?? $user['email'], ENT_QUOTES, 'UTF-8'); ?>
-            </span>
-            <a href="<?php echo SITE_URL; ?>/admin/logout.php"
-               class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-800 hover:text-white transition">
-                Sign out
+
+        <!-- User + Logout -->
+        <div class="px-3 py-4 border-t border-slate-700">
+            <div class="flex items-center gap-3 px-3 py-2 mb-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <?= strtoupper(substr($user['name'] ?? 'U', 0, 1)) ?>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-white text-sm font-medium truncate"><?= htmlspecialchars($user['name'] ?? '') ?></p>
+                    <p class="text-slate-400 text-xs truncate"><?= htmlspecialchars($user['role'] ?? '') ?></p>
+                </div>
+            </div>
+            <a href="<?= SITE_URL ?>/admin/logout.php"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-colors duration-150 no-underline">
+                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                <span>Logout</span>
             </a>
         </div>
     </aside>
@@ -228,7 +242,7 @@ $csrfToken = Auth::generateCsrf();
                                 $pageTitle = $page['title'] ?? $page['slug'];
                             ?>
                             <button type="button"
-                                    onclick="fillFromPage('<?php echo $loc; ?>', <?php echo json_encode($pageTitle, JSON_HEX_APOS | JSON_HEX_QUOT); ?>, <?php echo json_encode($pageUrl, JSON_HEX_APOS | JSON_HEX_QUOT); ?>)"
+                                    onclick="fillFromPage('<?php echo $loc; ?>', <?php echo htmlspecialchars(json_encode($pageTitle), ENT_QUOTES, 'UTF-8'); ?>, <?php echo htmlspecialchars(json_encode($pageUrl), ENT_QUOTES, 'UTF-8'); ?>)"
                                     class="rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-700 hover:border-indigo-400 hover:text-indigo-700 hover:bg-indigo-50 transition">
                                 <?php echo htmlspecialchars($pageTitle, ENT_QUOTES, 'UTF-8'); ?>
                             </button>
@@ -404,10 +418,17 @@ function saveMenu(loc) {
         };
     });
 
+    const body = new URLSearchParams({
+        csrf:     CSRF_TOKEN,
+        location: loc,
+        name:     loc,
+        items:    JSON.stringify(items),
+    });
+
     fetch(SITE_URL + '/admin/ajax.php?action=save_menu', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ csrf_token: CSRF_TOKEN, location: loc, items: items }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: body.toString(),
     })
     .then(r => r.json())
     .then(data => {

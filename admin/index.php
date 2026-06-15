@@ -39,7 +39,7 @@ $currentPage = 'dashboard';
 <body class="bg-gray-100 min-h-screen flex">
 
     <!-- Sidebar -->
-    <aside class="w-64 min-h-screen flex-shrink-0 flex flex-col" style="background-color: #0f172a;">
+    <aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #0f172a;">
         <!-- Logo -->
         <div class="px-6 py-5 border-b border-slate-700">
             <a href="<?= SITE_URL ?>/admin/" class="flex items-center gap-3 text-white no-underline">

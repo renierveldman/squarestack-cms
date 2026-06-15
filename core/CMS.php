@@ -261,50 +261,38 @@ class CMS
 
     public static function getMeta(string $type, int $id, string $key, mixed $default = null): mixed
     {
-        $db = Database::getInstance();
+        $db  = Database::getInstance();
         $row = $db->fetch(
-            'SELECT `meta_value` FROM `meta` WHERE `type` = ? AND `object_id` = ? AND `meta_key` = ? LIMIT 1',
+            'SELECT field_value FROM meta WHERE object_type = ? AND object_id = ? AND field_key = ? LIMIT 1',
             [$type, $id, $key]
         );
-        if (!$row) {
-            return $default;
-        }
-        $value = $row['meta_value'];
-        $decoded = json_decode($value, true);
-        return (json_last_error() === JSON_ERROR_NONE) ? $decoded : $value;
+        if (!$row) return $default;
+        $decoded = json_decode($row['field_value'], true);
+        return json_last_error() === JSON_ERROR_NONE ? $decoded : $row['field_value'];
     }
 
     public static function saveMeta(string $type, int $id, string $key, mixed $value): void
     {
-        $db = Database::getInstance();
+        $db      = Database::getInstance();
         $encoded = is_string($value) ? $value : json_encode($value);
-        $existing = $db->fetch(
-            'SELECT `id` FROM `meta` WHERE `type` = ? AND `object_id` = ? AND `meta_key` = ? LIMIT 1',
-            [$type, $id, $key]
+        $db->query(
+            'INSERT INTO meta (object_type, object_id, field_key, field_value) VALUES (?, ?, ?, ?)
+             ON DUPLICATE KEY UPDATE field_value = VALUES(field_value)',
+            [$type, $id, $key, $encoded]
         );
-        if ($existing) {
-            $db->update('meta', ['meta_value' => $encoded], '`type` = ? AND `object_id` = ? AND `meta_key` = ?', [$type, $id, $key]);
-        } else {
-            $db->insert('meta', [
-                'type'       => $type,
-                'object_id'  => $id,
-                'meta_key'   => $key,
-                'meta_value' => $encoded,
-            ]);
-        }
     }
 
     public static function getAllMeta(string $type, int $id): array
     {
-        $db = Database::getInstance();
+        $db   = Database::getInstance();
         $rows = $db->fetchAll(
-            'SELECT `meta_key`, `meta_value` FROM `meta` WHERE `type` = ? AND `object_id` = ?',
+            'SELECT field_key, field_value FROM meta WHERE object_type = ? AND object_id = ?',
             [$type, $id]
         );
         $result = [];
         foreach ($rows as $row) {
-            $decoded = json_decode($row['meta_value'], true);
-            $result[$row['meta_key']] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $row['meta_value'];
+            $decoded = json_decode($row['field_value'], true);
+            $result[$row['field_key']] = json_last_error() === JSON_ERROR_NONE ? $decoded : $row['field_value'];
         }
         return $result;
     }
@@ -322,7 +310,9 @@ class CMS
     {
         $matched = [];
         foreach (self::$fieldGroups as $group) {
-            $groupLocation = $group['location'] ?? null;
+            $loc = $group['location'] ?? null;
+            // location can be a string or ['type' => 'page', 'value' => '...']
+            $groupLocation = is_array($loc) ? ($loc['type'] ?? '') : (string)$loc;
             $groupTemplate = $group['template'] ?? '';
 
             if ($groupLocation !== $location) {

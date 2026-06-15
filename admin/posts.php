@@ -7,6 +7,12 @@ Auth::require();
 $user = Auth::currentUser();
 $db   = Database::getInstance();
 
+// Redirect to editor for new post
+if (($_GET['action'] ?? '') === 'new') {
+    header('Location: ' . SITE_URL . '/admin/posts-edit.php');
+    exit;
+}
+
 // Handle delete
 if (isset($_POST['action'], $_POST['id'], $_POST['csrf']) && $_POST['action'] === 'delete') {
     if (Auth::verifyCsrf($_POST['csrf'])) {
@@ -65,71 +71,73 @@ $totalDraft     = (int) $db->fetch("SELECT COUNT(*) AS n FROM posts WHERE status
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Posts &mdash; SquareStack CMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <style>
         [x-cloak] { display: none !important; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex">
+<body class="bg-gray-100">
+<?php $currentPage = 'posts'; ?>
+<div class="flex min-h-screen w-full">
 
-<!-- Sidebar -->
-<aside class="w-64 bg-gray-900 text-gray-200 flex flex-col min-h-screen fixed top-0 left-0 z-30">
-    <div class="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
-        <span class="text-white font-bold text-xl tracking-tight">SquareStack</span>
-    </div>
-    <nav class="flex-1 py-6 px-3 space-y-1 overflow-y-auto">
-        <a href="<?= SITE_URL ?>/admin/index.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-gauge-high w-5 text-center"></i> Dashboard
-        </a>
-        <a href="<?= SITE_URL ?>/admin/posts.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gray-700 text-white font-medium">
-            <i class="fa-solid fa-newspaper w-5 text-center"></i> Posts
-        </a>
-        <a href="<?= SITE_URL ?>/admin/pages.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-file-lines w-5 text-center"></i> Pages
-        </a>
-        <a href="<?= SITE_URL ?>/admin/categories.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-tags w-5 text-center"></i> Categories
-        </a>
-        <a href="<?= SITE_URL ?>/admin/media.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-photo-film w-5 text-center"></i> Media
-        </a>
-        <a href="<?= SITE_URL ?>/admin/menus.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-bars w-5 text-center"></i> Menus
-        </a>
-        <a href="<?= SITE_URL ?>/admin/users.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-users w-5 text-center"></i> Users
-        </a>
-        <a href="<?= SITE_URL ?>/admin/settings.php"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition">
-            <i class="fa-solid fa-gear w-5 text-center"></i> Settings
-        </a>
-    </nav>
-    <div class="px-4 py-4 border-t border-gray-700">
-        <div class="flex items-center gap-3 mb-3">
-            <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-bold text-sm">
-                <?= strtoupper(mb_substr($user['name'], 0, 1)) ?>
-            </div>
-            <div class="overflow-hidden">
-                <p class="text-sm font-medium text-white truncate"><?= htmlspecialchars($user['name']) ?></p>
-                <p class="text-xs text-gray-400 truncate"><?= htmlspecialchars($user['email']) ?></p>
-            </div>
+    <!-- Sidebar -->
+    <aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #0f172a;">
+        <!-- Logo -->
+        <div class="px-6 py-5 border-b border-slate-700">
+            <a href="<?= SITE_URL ?>/admin/" class="flex items-center gap-3 text-white no-underline">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fa-solid fa-cube text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">SquareStack</span>
+            </a>
         </div>
-        <a href="<?= SITE_URL ?>/admin/logout.php"
-           class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition">
-            <i class="fa-solid fa-right-from-bracket"></i> Sign out
-        </a>
-    </div>
-</aside>
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <?php
+            $navItems = [
+                ['href' => SITE_URL . '/admin/',            'icon' => 'fa-gauge-high',  'label' => 'Dashboard', 'key' => 'dashboard'],
+                ['href' => SITE_URL . '/admin/pages.php',   'icon' => 'fa-file-lines',  'label' => 'Pages',     'key' => 'pages'],
+                ['href' => SITE_URL . '/admin/posts.php',   'icon' => 'fa-newspaper',   'label' => 'Posts',     'key' => 'posts'],
+                ['href' => SITE_URL . '/admin/menus.php',   'icon' => 'fa-bars',        'label' => 'Menus',     'key' => 'menus'],
+                ['href' => SITE_URL . '/admin/media.php',   'icon' => 'fa-photo-film',  'label' => 'Media',     'key' => 'media'],
+                ['href' => SITE_URL . '/admin/settings.php','icon' => 'fa-gear',        'label' => 'Settings',  'key' => 'settings'],
+            ];
+            foreach ($navItems as $item):
+                $isActive = ($currentPage === $item['key']);
+                $baseClass = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline';
+                $activeClass = $isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white';
+            ?>
+            <a href="<?= htmlspecialchars($item['href']) ?>" class="<?= $baseClass . ' ' . $activeClass ?>">
+                <i class="fa-solid <?= $item['icon'] ?> w-4 text-center"></i>
+                <span><?= $item['label'] ?></span>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
+        <!-- User + Logout -->
+        <div class="px-3 py-4 border-t border-slate-700">
+            <div class="flex items-center gap-3 px-3 py-2 mb-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <?= strtoupper(substr($user['name'] ?? 'U', 0, 1)) ?>
+                </div>
+                <div class="overflow-hidden">
+                    <p class="text-white text-sm font-medium truncate"><?= htmlspecialchars($user['name'] ?? '') ?></p>
+                    <p class="text-slate-400 text-xs truncate"><?= htmlspecialchars($user['role'] ?? '') ?></p>
+                </div>
+            </div>
+            <a href="<?= SITE_URL ?>/admin/logout.php"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-colors duration-150 no-underline">
+                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
 
 <!-- Main -->
-<div class="flex-1 ml-64 flex flex-col min-h-screen">
+<div class="flex-1 flex flex-col min-h-screen">
 
     <!-- Top bar -->
     <header class="bg-white border-b border-gray-200 px-8 py-4 flex items-center justify-between sticky top-0 z-20">
@@ -137,7 +145,7 @@ $totalDraft     = (int) $db->fetch("SELECT COUNT(*) AS n FROM posts WHERE status
             <h1 class="text-xl font-semibold text-gray-800">Posts</h1>
             <p class="text-sm text-gray-500 mt-0.5">Manage your blog posts</p>
         </div>
-        <a href="<?= SITE_URL ?>/admin/post-edit.php"
+        <a href="<?= SITE_URL ?>/admin/posts-edit.php"
            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition">
             <i class="fa-solid fa-plus"></i> Add New Post
         </a>
@@ -223,7 +231,7 @@ $totalDraft     = (int) $db->fetch("SELECT COUNT(*) AS n FROM posts WHERE status
                         <?php if ($filterCategory !== null || $filterStatus !== '' || $search !== ''): ?>
                             Try adjusting your filters or <a href="<?= SITE_URL ?>/admin/posts.php" class="text-indigo-500 hover:underline">clear them</a>.
                         <?php else: ?>
-                            <a href="<?= SITE_URL ?>/admin/post-edit.php" class="text-indigo-500 hover:underline">Create your first post</a>.
+                            <a href="<?= SITE_URL ?>/admin/posts-edit.php" class="text-indigo-500 hover:underline">Create your first post</a>.
                         <?php endif; ?>
                     </p>
                 </div>
@@ -243,7 +251,7 @@ $totalDraft     = (int) $db->fetch("SELECT COUNT(*) AS n FROM posts WHERE status
                             <tr class="hover:bg-gray-50 transition group">
                                 <!-- Title -->
                                 <td class="px-6 py-4">
-                                    <a href="<?= SITE_URL ?>/admin/post-edit.php?id=<?= $post['id'] ?>"
+                                    <a href="<?= SITE_URL ?>/admin/posts-edit.php?id=<?= $post['id'] ?>"
                                        class="font-medium text-gray-900 hover:text-indigo-600 transition">
                                         <?= htmlspecialchars($post['title']) ?>
                                     </a>
@@ -286,7 +294,7 @@ $totalDraft     = (int) $db->fetch("SELECT COUNT(*) AS n FROM posts WHERE status
                                 <!-- Actions -->
                                 <td class="px-6 py-4 text-right whitespace-nowrap">
                                     <div class="inline-flex items-center gap-1">
-                                        <a href="<?= SITE_URL ?>/admin/post-edit.php?id=<?= $post['id'] ?>"
+                                        <a href="<?= SITE_URL ?>/admin/posts-edit.php?id=<?= $post['id'] ?>"
                                            title="Edit"
                                            class="p-2 text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition">
                                             <i class="fa-solid fa-pen-to-square text-sm"></i>
@@ -369,5 +377,6 @@ document.addEventListener('keydown', function(e) {
 });
 </script>
 
+</div><!-- end flex wrapper -->
 </body>
 </html>

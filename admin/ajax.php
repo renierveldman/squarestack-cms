@@ -18,7 +18,7 @@ $action = $_GET['action'] ?? $_POST['action'] ?? '';
 $isGet = $_SERVER['REQUEST_METHOD'] === 'GET';
 
 if (!$isGet) {
-    $csrf = $_POST['csrf'] ?? '';
+    $csrf = $_POST['csrf'] ?? $_POST['csrf_token'] ?? '';
     if (!Auth::verifyCsrf($csrf)) {
         http_response_code(403);
         echo json_encode(['success' => false, 'error' => 'Invalid CSRF token']);

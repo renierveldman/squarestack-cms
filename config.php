@@ -1,9 +1,9 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'squarestack');
+define('DB_NAME', 'squarestackcms');
 define('DB_USER', 'root');
 define('DB_PASS', 'root');
-define('SITE_URL', 'http://localhost/squarestack-cms');
+define('SITE_URL', 'http://localhost:8888/squarestack-cms');
 define('THEME', 'starter');
 define('CACHE_ENABLED', true);
 define('CACHE_TTL', 3600);

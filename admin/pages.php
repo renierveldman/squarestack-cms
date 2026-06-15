@@ -7,6 +7,12 @@ require_once CORE_PATH . '/CMS.php';
 
 Auth::require();
 
+// Redirect to editor for new page
+if (($_GET['action'] ?? '') === 'new') {
+    header('Location: ' . SITE_URL . '/admin/pages-edit.php');
+    exit;
+}
+
 $user  = Auth::currentUser();
 $pages = CMS::getPages(['order_by' => 'updated_at DESC']);
 $csrf  = Auth::generateCsrf();
@@ -18,51 +24,64 @@ $csrf  = Auth::generateCsrf();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pages &mdash; SquareStack CMS</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body class="bg-gray-100 min-h-screen flex">
 
+    <?php $currentPage = 'pages'; ?>
+
     <!-- Sidebar -->
-    <aside class="w-64 bg-gray-900 text-gray-200 flex flex-col min-h-screen flex-shrink-0">
-        <div class="px-6 py-5 border-b border-gray-700">
-            <span class="text-xl font-bold text-white">SquareStack</span>
-            <span class="block text-xs text-gray-400 mt-0.5">Content Management</span>
+    <aside class="w-64 flex-shrink-0 flex flex-col sticky top-0 h-screen overflow-hidden" style="background-color: #0f172a;">
+        <!-- Logo -->
+        <div class="px-6 py-5 border-b border-slate-700">
+            <a href="<?= SITE_URL ?>/admin/" class="flex items-center gap-3 text-white no-underline">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                    <i class="fa-solid fa-cube text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tight">SquareStack</span>
+            </a>
         </div>
-        <nav class="flex-1 px-4 py-6 space-y-1">
-            <a href="<?= SITE_URL ?>/admin/dashboard.php"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                <i class="fa-solid fa-gauge-high w-4 text-center"></i> Dashboard
+
+        <!-- Nav -->
+        <nav class="flex-1 px-3 py-4 space-y-1">
+            <?php
+            $navItems = [
+                ['href' => SITE_URL . '/admin/',            'icon' => 'fa-gauge-high',  'label' => 'Dashboard', 'key' => 'dashboard'],
+                ['href' => SITE_URL . '/admin/pages.php',   'icon' => 'fa-file-lines',  'label' => 'Pages',     'key' => 'pages'],
+                ['href' => SITE_URL . '/admin/posts.php',   'icon' => 'fa-newspaper',   'label' => 'Posts',     'key' => 'posts'],
+                ['href' => SITE_URL . '/admin/menus.php',   'icon' => 'fa-bars',        'label' => 'Menus',     'key' => 'menus'],
+                ['href' => SITE_URL . '/admin/media.php',   'icon' => 'fa-photo-film',  'label' => 'Media',     'key' => 'media'],
+                ['href' => SITE_URL . '/admin/settings.php','icon' => 'fa-gear',        'label' => 'Settings',  'key' => 'settings'],
+            ];
+            foreach ($navItems as $item):
+                $isActive = ($currentPage === $item['key']);
+                $baseClass = 'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150 no-underline';
+                $activeClass = $isActive
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-slate-400 hover:bg-slate-800 hover:text-white';
+            ?>
+            <a href="<?= htmlspecialchars($item['href']) ?>" class="<?= $baseClass . ' ' . $activeClass ?>">
+                <i class="fa-solid <?= $item['icon'] ?> w-4 text-center"></i>
+                <span><?= $item['label'] ?></span>
             </a>
-            <a href="<?= SITE_URL ?>/admin/pages.php"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm bg-gray-700 text-white font-medium">
-                <i class="fa-solid fa-file-lines w-4 text-center"></i> Pages
-            </a>
-            <a href="<?= SITE_URL ?>/admin/posts.php"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                <i class="fa-solid fa-newspaper w-4 text-center"></i> Posts
-            </a>
-            <a href="<?= SITE_URL ?>/admin/media.php"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                <i class="fa-solid fa-images w-4 text-center"></i> Media
-            </a>
-            <a href="<?= SITE_URL ?>/admin/settings.php"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors">
-                <i class="fa-solid fa-gear w-4 text-center"></i> Settings
-            </a>
+            <?php endforeach; ?>
         </nav>
-        <div class="px-4 py-4 border-t border-gray-700">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+
+        <!-- User + Logout -->
+        <div class="px-3 py-4 border-t border-slate-700">
+            <div class="flex items-center gap-3 px-3 py-2 mb-2">
+                <div class="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
                     <?= strtoupper(substr($user['name'] ?? 'U', 0, 1)) ?>
                 </div>
-                <div class="min-w-0">
-                    <p class="text-sm text-white truncate"><?= htmlspecialchars($user['name'] ?? '') ?></p>
-                    <p class="text-xs text-gray-400 truncate"><?= htmlspecialchars($user['role'] ?? '') ?></p>
+                <div class="overflow-hidden">
+                    <p class="text-white text-sm font-medium truncate"><?= htmlspecialchars($user['name'] ?? '') ?></p>
+                    <p class="text-slate-400 text-xs truncate"><?= htmlspecialchars($user['role'] ?? '') ?></p>
                 </div>
             </div>
             <a href="<?= SITE_URL ?>/admin/logout.php"
-               class="flex items-center gap-2 text-xs text-gray-400 hover:text-white transition-colors">
-                <i class="fa-solid fa-right-from-bracket"></i> Sign out
+               class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-colors duration-150 no-underline">
+                <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                <span>Logout</span>
             </a>
         </div>
     </aside>
@@ -201,14 +220,12 @@ $csrf  = Auth::generateCsrf();
                         class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
                     Cancel
                 </button>
-                <form id="deleteForm" method="POST" action="<?= SITE_URL ?>/admin/ajax.php?action=delete_page">
-                    <input type="hidden" name="id" id="deletePageId">
-                    <input type="hidden" name="csrf_token" id="deleteCsrf">
-                    <button type="submit"
-                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
-                        <i class="fa-solid fa-trash-can mr-1"></i> Delete
-                    </button>
-                </form>
+                <input type="hidden" id="deletePageId">
+                <input type="hidden" id="deleteCsrf">
+                <button type="button" id="confirmDelete"
+                        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors">
+                    <i class="fa-solid fa-trash-can mr-1"></i> Delete
+                </button>
             </div>
         </div>
     </div>
@@ -220,6 +237,7 @@ $csrf  = Auth::generateCsrf();
         const idInput     = document.getElementById('deletePageId');
         const csrfInput   = document.getElementById('deleteCsrf');
         const cancelBtn   = document.getElementById('cancelDelete');
+        const confirmBtn  = document.getElementById('confirmDelete');
 
         document.querySelectorAll('.js-delete-page').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -235,9 +253,33 @@ $csrf  = Auth::generateCsrf();
         });
 
         modal.addEventListener('click', function (e) {
-            if (e.target === modal) {
-                modal.classList.add('hidden');
-            }
+            if (e.target === modal) modal.classList.add('hidden');
+        });
+
+        confirmBtn.addEventListener('click', function () {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Deleting…';
+
+            fetch('<?= SITE_URL ?>/admin/ajax.php?action=delete_page', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'id=' + encodeURIComponent(idInput.value) + '&csrf_token=' + encodeURIComponent(csrfInput.value)
+            })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                if (data.success) {
+                    window.location.href = '<?= SITE_URL ?>/admin/pages.php?deleted=1';
+                } else {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Delete';
+                    alert(data.error || 'Failed to delete page.');
+                }
+            })
+            .catch(function () {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = '<i class="fa-solid fa-trash-can mr-1"></i> Delete';
+                alert('An error occurred. Please try again.');
+            });
         });
     })();
     </script>

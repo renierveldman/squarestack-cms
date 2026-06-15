@@ -56,6 +56,16 @@ class Router
 
         // Route matching
         if ($uri === '/') {
+            $homepageId = (int) Settings::get('homepage_id', 0);
+            if ($homepageId > 0) {
+                $pageData = CMS::getPage($homepageId);
+                if ($pageData) {
+                    $GLOBALS['page'] = $pageData;
+                    $template = !empty($pageData['template']) ? $pageData['template'] : 'page';
+                    $this->loadTemplate($template);
+                    return;
+                }
+            }
             $this->loadTemplate('index');
             return;
         }
