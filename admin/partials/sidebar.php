@@ -25,7 +25,8 @@ $_sidebarUser = $user ?? $currentUser ?? [];
             ['href' => SITE_URL . '/admin/users.php',         'icon' => 'fa-users',      'label' => 'Users',         'key' => 'users'],
             ['href' => SITE_URL . '/admin/theme-options.php', 'icon' => 'fa-palette',    'label' => 'Custom Fields', 'key' => 'theme_options'],
             ['href' => SITE_URL . '/admin/integrations.php',  'icon' => 'fa-plug',       'label' => 'Integrations',  'key' => 'integrations'],
-            ['href' => SITE_URL . '/admin/settings.php',      'icon' => 'fa-gear',       'label' => 'Settings',      'key' => 'settings'],
+            ['href' => SITE_URL . '/admin/settings.php',      'icon' => 'fa-gear',          'label' => 'Settings',       'key' => 'settings'],
+            ['href' => SITE_URL . '/admin/documentation.php', 'icon' => 'fa-book-open',    'label' => 'Documentation',  'key' => 'documentation'],
         ];
         foreach ($navItems as $item):
             $isActive    = (($currentPage ?? '') === $item['key']);
