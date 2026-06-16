@@ -134,6 +134,15 @@ CREATE TABLE IF NOT EXISTS form_submissions (
   FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  ip_address VARCHAR(45) NOT NULL,
+  email VARCHAR(191) NOT NULL DEFAULT '',
+  attempted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_ip_time (ip_address, attempted_at),
+  INDEX idx_email_time (email, attempted_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- Default menus
 INSERT INTO menus (name, location) VALUES
   ('Primary Navigation', 'primary'),

@@ -4,17 +4,14 @@ require_once CORE_PATH . '/Database.php';
 require_once CORE_PATH . '/Auth.php';
 require_once CORE_PATH . '/Settings.php';
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 // Already logged in — redirect to dashboard
 if (Auth::check() !== false) {
     header('Location: ' . SITE_URL . '/admin/index.php');
     exit;
 }
 
-$error = '';
+$error     = '';
+$lockedOut = false;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token    = $_POST['csrf_token'] ?? '';
@@ -25,6 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = 'Invalid or expired request. Please try again.';
     } elseif ($email === '' || $password === '') {
         $error = 'Please enter your email and password.';
+    } elseif (Auth::isLockedOut($email)) {
+        $lockedOut = true;
+        $secs      = Auth::lockoutSecondsRemaining($email);
+        $mins      = (int) ceil($secs / 60);
+        $error     = "Too many failed attempts. Please wait {$mins} minute" . ($mins === 1 ? '' : 's') . ' before trying again.';
     } else {
         if (Auth::login($email, $password)) {
             setcookie(
@@ -41,7 +43,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             header('Location: ' . SITE_URL . '/admin/index.php');
             exit;
         } else {
-            $error = 'Invalid email or password.';
+            // Login failed — check if this attempt triggered a lockout
+            if (Auth::isLockedOut($email)) {
+                $lockedOut = true;
+                $secs      = Auth::lockoutSecondsRemaining($email);
+                $mins      = (int) ceil($secs / 60);
+                $error     = "Too many failed attempts. Your account is locked for {$mins} minute" . ($mins === 1 ? '' : 's') . '.';
+            } else {
+                $error = 'Invalid email or password.';
+            }
         }
     }
 }
@@ -71,7 +81,7 @@ $siteName  = Settings::get('site_name', 'SquareStack CMS');
             </div>
 
             <?php if ($error !== ''): ?>
-                <div class="mb-5 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+                <div class="mb-5 rounded-lg <?php echo $lockedOut ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-red-50 border-red-200 text-red-700'; ?> border px-4 py-3 text-sm">
                     <?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?>
                 </div>
             <?php endif; ?>
@@ -91,7 +101,8 @@ $siteName  = Settings::get('site_name', 'SquareStack CMS');
                         required
                         autofocus
                         autocomplete="email"
-                        class="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition"
+                        <?php echo $lockedOut ? 'disabled' : ''; ?>
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition <?php echo $lockedOut ? 'opacity-50 cursor-not-allowed' : ''; ?>"
                         placeholder="you@example.com"
                     >
                 </div>
@@ -106,16 +117,18 @@ $siteName  = Settings::get('site_name', 'SquareStack CMS');
                         name="password"
                         required
                         autocomplete="current-password"
-                        class="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition"
+                        <?php echo $lockedOut ? 'disabled' : ''; ?>
+                        class="block w-full rounded-lg border border-slate-300 bg-white px-3.5 py-2.5 text-slate-900 text-sm placeholder-slate-400 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition <?php echo $lockedOut ? 'opacity-50 cursor-not-allowed' : ''; ?>"
                         placeholder="••••••••"
                     >
                 </div>
 
                 <button
                     type="submit"
-                    class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-700 transition"
+                    <?php echo $lockedOut ? 'disabled' : ''; ?>
+                    class="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 active:bg-indigo-700 transition <?php echo $lockedOut ? 'opacity-50 cursor-not-allowed' : ''; ?>"
                 >
-                    Sign in
+                    <?php echo $lockedOut ? 'Account Locked' : 'Sign in'; ?>
                 </button>
             </form>
 
